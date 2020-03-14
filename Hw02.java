@@ -1,201 +1,148 @@
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
-class Hw02{
+public class Hw02{
 
-    //positive & negative infinify nodes
-    public Node negative;
-    public Node positive;
+    public static class node{
+        //public String key; //what is this for
+        public Integer value;
 
-    //setting up the infinite nodes in skip list
-    public SkipList(){
-        negative = new Node(Integer.MIN_VALUE);
-        positive = new Node(Integer.MAX_VALUE);
+        public node up;
+        public node down;
+        public node left;
+        public node right;
 
-        negative.setRight(positive);
-        positive.setRight(negative);
+        //helper infinity declarations
+        public static int negative = Integer.MIN_VALUE;
+        public static int positive = Integer.MAX_VALUE;
     }
 
-    //SEARCH FUNCTION
-    public Node search(int value){
-        //start at left
-        Node current = negative;
+    public static class skiplist{
+        public node head;
+        public node tail;
 
-        while(current != null){
-            while(current.right != null && current.right.data <= data){
-                current = current.right;
+        public int n; //number of entries in list
+        public int h; //height 
+        public Random r; //coin toss
+
+        public static void SkipList(){
+            node tmp, tmp2;
+
+            tmp = new node(node.negative, null);
+            tmp2 = new node(node.positive, null);
+
+            head = tmp;
+            tail = tmp2;
+
+            tmp.right = tmp2;
+            tmp2.left = tmp;
+
+            n = 0; //no entries to start
+            h = 0; //initial height 0
+
+            r = new Random(42)%2;
+        }
+//SEARCHING FUNCTIONS
+        public node searching(int value){
+            node tmp;
+            tmp = head;
+
+            while(true){
+                while((tmp.right.value) != node.positive && (tmp.right.value) <= value){
+                    tmp = tmp.right;
+                }
+                //try going down a level
+                if(tmp.down != null){
+                    tmp = tmp.down;
+                }
+                else{
+                    break;
+                }
             }
-            if(current.data == data){
+            return(tmp);
+        }
+
+        public Integer search(int value){
+            node tmp;
+            tmp = searching(value);
+
+            if(tmp.value == value){
+                 return(tmp.value);
+            }
+            else{
+                System.out.println("not found");
+                return(null);
+            }
+        }
+
+        public void addLayer(){
+            node tmp, tmp2;
+            tmp = new node(node.negative, null);
+            tmp2 = new node(node.positive, null);
+
+            tmp.right = tmp2;
+            tmp.down = head;
+
+            tmp2.left = tmp;
+            tmp.down = tail;
+
+            head.up = tmp;
+            tail.up = tmp2;
+
+            head = tmp;
+            tail = tmp2;
+
+            h += 1; //add to height count
+        }
+
+//INSERTING FUNCTION
+        public Integer insert(int value){
+            node tmp, tmp2;
+            int i;
+
+            tmp = searching(value);
+
+            if(tmp.value == value){ //does the value already exist in the list
                 break;
             }
+            else{ //it does not, enter it
+                tmp2 = new node(value);
 
-            current = current.down;
-        }
-        return current;
-    }
+                tmp2.left = tmp;
+                tmp2.right = tmp.right;
+                tmp.right.left = tmp2;
+                tmp.right = tmp2;
 
-    //INSERT FUNCTION
-    public boolean insert(int value){
-        //start at left
-        Node current = negative;
+                i=0;
+                while(r.nextDouble() < 0.5){
+                    if(i >= h){
+                        addLayer();
+                    }
 
-        List<Node> skiplist = new ArrayList<Node>();
+                    while(tmp.up == null){
+                        tmp = tmp.left;
+                    }
+                    tmp = tmp.up;
 
-        while(current != null){
-            while(current.right != null && current.right.data < data){
-                current = current.right;
-            }
-            skiplist.add(current);
-            current = current.down;
-        }
+                    node tmp3;
 
-        //insert after finding the last qualifying node
-        int level = 0;
+                    tmp3 = new node(value, null);
+                    tmp3.left = tmp;
+                    tmp3.right = tmp.right;
+                    tmp3.down = tmp2;
 
-        Node tmp = null;
+                    tmp.tight.left = tmp3;
+                    tmp.right = tmp3;
+                    tmp2.up = tmp3;
 
-        while(level == 0 || random()){
-            //moving up
-            if(tmp == null){
-                tmp = new Node(value);
-            }
-            else{
-                tmp = new Node(tmp);
-            }
+                    tmp2 = tmp3;
 
-            Node tmp2 = null;
-
-            if(skiplist.size() <= level){
-                createLevel();
-                tmp2 = this.negative;
-            }
-            else{
-                tmp2 = skiplist.get(skiplist.size() - level - 1);
-            }
-
-            tmp.right = tmp2.right;
-            tmp.left = tmp2;
-            tmp.right.left = tmp;
-            tmp2.right = tmp;
-            level++;
-            
-        }
-        return true;
-    }
-
-    //DELETE FUNCTION
-    public boolean delete(int value){
-        Node current = this.negative;
-
-        List<Node> skiplist = new ArrayList<Node>();
-
-        while(current != null){
-            while(current.right != null && current.right.data < data){
-                current = current.right;
-            }
-
-            if(current.right.data == data){
-                skiplist.add(current);
-            }
-
-            current = current.down;
-        }
-
-        for(int i=0; i < skiplist.size(); i++){
-            Node tmp = skiplist.get(i);
-            Node delete = tmp.right;
-            tmp.right = delete.right;
-            delete.right.left = tmp;
-            delete.up = null;
-            delete.down = null;
-        }
-
-        return true;
-    }
-
-    public void newLevel(){
-        Node negative = new Node(Integer.MIN_VALUE);
-        Node positive = new Node(Integer.MAX_VALUE);
-
-        negative.setRight(positive);
-        positive.setLeft(negative);
-
-        this.negative.up = negative;
-        negative.down = this.negative;
-        this.negative = negative;
-
-        this.positive.up = positive;
-        positive.down = this.positive;
-        this.positive = positive;
-    }
-
-    public boolean rand(){
-        return Math.random() >= 0.5;
-    }
-
-    public void print(){
-        Node current = this.negative;
-
-        while(current.down != null){
-            current = current.down;
-        }
-
-        current = current.right;
-        while(current.right != null){
-            System.out.print(current.value + " ");
-            current = current.right;
-        }
-
-        System.out.println();
-    }
-
-    public void printAll(){
-        Node current = this.negative;
-
-        while(current != null){
-            Node tmp = current;
-            tmp = tmp.right;
-
-            while(tmp.right != null){
-                System.out.print(tmp.value + " ");
-                tmp = tmp.right;
-            }
-            current = current.down;
-            System.out.println();
-        }
-    }
-
-    public static void main(String[] args){
-
-        SkipList list = new SkipList();
-
-        boolean result = false;
-
-        try{
-            //getting file name from command input
-            String infile = args[0];
-            BufferedReader br;
-            br = new BufferedReader(new FileReader(infile));
-
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while(line != null){
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-
-            String everything = sb.toString();
-            Strring[] input = everything.split(",");
-
-            for(int i=0; i<input.length; i++){
-                String temp = input[i];
-
-
+                    i += 1;
+                }
+                n += 1; //another entry was added to the list
+                return(null);
             }
         }
     }
-
 
 }

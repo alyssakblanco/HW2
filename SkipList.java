@@ -22,7 +22,7 @@ private Node negativeInfinity;
 
 private Node positiveInfinity;
 
-public SkipList() {
+public void SkipList() {
 
 negativeInfinity = new Node(Integer.MIN_VALUE);
 
