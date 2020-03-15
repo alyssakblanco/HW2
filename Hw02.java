@@ -15,6 +15,7 @@ public class Hw02 {
 
     public static class Node{
         public int value;
+        public int height;
         public Node left;
         public Node right;
         public Node up;
@@ -127,6 +128,7 @@ public class Hw02 {
 
             level++;
         }
+        tmp.height = level;
         return true;
     }
 
@@ -182,36 +184,27 @@ public class Hw02 {
         return Math.random() >= 0.5;
     }
 
-    public void print(){
-        Node current = this.negative;
-
-        while(current.down != null){
-            current = current.down;
-        }
-
-        current = current.right;
-
-        while(current.right != null){
-            System.out.print(current.value + " ");
-            current = current.right;
-        }
-        System.out.println();
-    }
-
     public void printAll(){
         Node current = this.negative;
-
         while(current != null){
-            Node first = current;
-            first = first.right;
 
-            while(first.right != null){
-                System.out.print(first.value + " ");
-                first = first.right;
+            while(current.down != null){
+                current = current.down;
             }
 
+            Node head = current;
+            head = head.right;
+
+            while(head.right != null){
+                System.out.print(head.value + "; ");
+
+                for(int i=0; i<head.height; i++)
+                    System.out.print(head.value + "; ");
+                    
+                System.out.println();
+                head = head.right;
+            }
             current = current.down;
-            System.out.println();
         }
     }
 
