@@ -27,6 +27,7 @@ public class Hw02 {
             this.right = null;
             this.up = null;
             this.down = null;
+            this.height = 0;
         }
 
         public Node(Node tmp){
@@ -35,6 +36,7 @@ public class Hw02 {
             this.right = null;
             this.up = null;
             this.down = tmp;
+            this.height = 0;
         }
 
         public Node getLeft(){
@@ -85,13 +87,16 @@ public class Hw02 {
         return current;
     }
 
-    public boolean insert(int value){
+    public boolean insert(int value, Random r){
         Node current = negative; 
         List<Node> updatedlist = new ArrayList<Node>();
 
         while(current != null){
 
-            while(current.right != null && current.right.value < value){
+            while(current.right != null && current.right.value <= value){
+                if(current.right.value == value){
+                    return false;
+                }
                 current = current.right;
             }
 
@@ -102,7 +107,7 @@ public class Hw02 {
         int level = 0;
         Node tmp = null;
 
-        while(level == 0 || coinToss()){
+        while(level == 0 || (coinToss(r, value)==1)){
 
             if(tmp == null){
                 tmp = new Node(value);
@@ -132,9 +137,11 @@ public class Hw02 {
         return true;
     }
 
+
     public boolean delete(int value){
         Node current = this.negative;
         List<Node> updatedlist = new ArrayList<Node>();
+        boolean state = false;
 
         while(current != null){
 
@@ -144,20 +151,23 @@ public class Hw02 {
 
             if(current.right.value == value){
                 updatedlist.add(current);
+
+                for(int i=0; i<updatedlist.size(); i++){
+                    Node update = updatedlist.get(i);
+                    Node delete = update.right;
+
+                    update.right = delete.right;
+                    delete.right.left = update;
+                    delete.up = null;
+                    delete.down = null;
+                }
+                //System.out.println("test"+state);
+                state = true;
             }
             current = current.down;
-        }
-
-        for(int i=0; i<updatedlist.size(); i++){
-            Node update = updatedlist.get(i);
-            Node delete = update.right;
-
-            update.right = delete.right;
-            delete.right.left = update;
-            delete.up = null;
-            delete.down = null;
-        }
-        return true;
+        }  
+        //System.out.println("test2"+state);      
+        return state;
     }
 
     public void newLevel(){
@@ -174,16 +184,14 @@ public class Hw02 {
         this.positive.up = positive;
         positive.down = this.positive;
         this.positive = positive;
+
     }
 
-    public boolean coinToss(){
-        // Random r = new Random();
-        // long seed = 42;
-        // r.setSeed(seed);
-        // return r.nextBoolean();
-        return Math.random() >= 0.5;
+    public static int coinToss(Random r, int current){
+        int v = (r.nextInt())%2;
+        return v;
     }
-
+        
     public void printAll(){
         Node current = this.negative;
         while(current != null){
@@ -196,10 +204,25 @@ public class Hw02 {
             head = head.right;
 
             while(head.right != null){
-                System.out.print(head.value + "; ");
+                System.out.print(" "+head.value + "; ");
 
-                for(int i=0; i<head.height; i++)
-                    System.out.print(head.value + "; ");
+                Node tmp = this.negative;
+                Node tracker = tmp.right;
+                while(tmp.down != null){
+                    tracker = tmp.right;
+
+                    while(tracker.right != null){
+
+                        if(tracker.value == head.value){
+                            System.out.print(" "+tracker.value + "; "); 
+                            break; 
+                        }
+                        tracker = tracker.right;
+                    }
+                    //System.out.println();
+                    tmp = tmp.down;
+                    //tracker = tmp.right;
+                }
                     
                 System.out.println();
                 head = head.right;
@@ -209,7 +232,7 @@ public class Hw02 {
     }
 
     public static void complexityIndicator(){
-        System.out.println("al144291;4;15");
+        System.err.println("al144291;4;20");
     }
 
     public static void main(String[] args){
@@ -220,92 +243,52 @@ public class Hw02 {
 
         String infile = args[0];
 
+        Random r = new Random();
+        r.setSeed(42);
+
         try{
             complexityIndicator();
             System.out.println("For the input file named " + infile);
             System.out.println("With the RNG unseeded,");
-            System.out.println("the current Skip List is shown below:");
-            System.out.println("---infinity");
 
-            BufferedReader br = new BufferedReader(new FileReader(infile));
-            // StringBuilder sb = new StringBuilder();
-            // String line = br.readLine();
-
-            // while(line != null){
-            //     sb.append(line);
-            //     sb.append(System.lineSeparator());
-            //     line = br.readLine();
-            // }
-
-            // String everything = sb.toString();
-            // String[] input = everything.split("\n");
-
-        
-
-            // for(int i=0; i<input.length; i++){
-            //     String tmp = input[i];
-            // String line = "";
-            // while((line = br.readLine()) != null){
-
-            //     if(tmp.startsWith("i")){
-            //         substr=tmp.substring(2,4);
-            //         result = list.insert(Integer.parseInt(substr)); 
-            //     }
-            //     else if(tmp.startsWith("s")){
-            //         Node node = list.search(Integer.parseInt(tmp.substring(2,4)));
-
-            //         if(node!=null){
-            //             System.out.println(tmp.substring(2,5) + " found");
-            //         }
-            //         else{
-            //             System.out.println(tmp.substring(2,5) + " not found");
-            //         }
-            //     }
-            //     else if(tmp.startsWith("d")){
-            //         result = list.delete(Integer.parseInt(tmp.substring(2,4)));
-
-            //         if(result == true){
-            //             System.out.println(tmp.substring(2,5) + " deleted");
-            //         }
-            //         else{
-            //             System.out.println(tmp.substring(2,5) + " not deleted");
-            //         }
-            //     }
             Scanner scnr = new Scanner(new File(infile));
 
             char command = 'o';
+            int current = 0;
 
             while(scnr.hasNext()){
                 command = scnr.next().charAt(0);
 
                 if(command == 'i'){
-                    list.insert(scnr.nextInt());
+                    list.insert(scnr.nextInt(), r);
                 }
                 else if(command == 's'){
-                    list.search(scnr.nextInt());
-                    if(list.search(scnr.nextInt()) != null){
-                        System.out.print("found");
+                    current = scnr.nextInt();
+                    list.search(current);
+                    if(list.search(current) != null){
+                        System.out.println(current+ " found");
                     }else{
-                        System.out.println("not found");
+                        System.out.println(current+ " NOT FOUND");
                     }
                 }
                 else if(command == 'd'){
-                    list.delete(scnr.nextInt());
-                    if(list.delete(scnr.nextInt()) != false){
-                        System.out.print("deleted");
+                    current = scnr.nextInt();
+                    //list.delete(current);
+                    if(list.delete(current) == true){
+                        System.out.println(current+ " deleted");
                     }else{
-                        System.out.println("not deleted");
+                        System.out.println(current+ " integer not found - delete not successful");
                     }
                 }
                 else if(command == 'p'){
+                    System.out.println("the current Skip List is shown below: ");
+                    System.out.println("---infinity");
                     list.printAll();
+                    System.out.println("+++infinity");
+                    System.out.println("---End of Skip List---");
                 }
-                // else if (tmp.startsWith("p")){
-                //     list.printAll();
-                // }
             }//end of while
-            System.out.println("+++infinity");
-            System.out.print("---End of Skip List---");
+            
         }//end try
 
         catch(Exception e){
